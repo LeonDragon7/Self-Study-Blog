@@ -2012,8 +2012,8 @@ public class TestDAO {
 
         //4. dml操作  insert ,update, delete
         int update = actorDAO.update("insert into actor values(null, ?, ?, ?, ?)", "张无忌", "男", "2000-11-11", "999");
-
         System.out.println(update > 0 ? "执行成功" : "执行没有影响表");
     }
 }
 ```
+
