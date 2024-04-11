@@ -118,7 +118,7 @@ alert("jQuery 的单击事件");
 > 1. 先有 jQuery 对象                 
 > 2. jQuery 对象`[下标]`取出相应的 DOM 对象             
 
-![JQuery对象和DOM对象相互转换](/assets/jQuery/对象和DOM对象相互转换.png)
+![JQuery对象和DOM对象相互转换](/assets/jQuery/JQuery对象和DOM对象相互转换.png)
 
 # 五、jQuery 选择器
 
