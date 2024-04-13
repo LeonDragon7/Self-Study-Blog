@@ -1,6 +1,6 @@
 ---
 external: false
-title: jQuery
+title: JQuery
 date: 2023-06-04
 ---
 

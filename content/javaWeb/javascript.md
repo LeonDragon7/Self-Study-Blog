@@ -1,6 +1,6 @@
 ---
 external: false
-title: javascript
+title: Javascript
 date: 2023-06-02
 ---
 
