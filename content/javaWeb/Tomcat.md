@@ -195,3 +195,76 @@ docBase 表示你的工程目录在哪里
 ![创建动态web工程](/assets/tomcat/创建动态web工程.png)
 
 
+## 2. Web 工程的目录介绍
+
+![web工程介绍](/assets/tomcat/web工程介绍.png)
+
+## 3. 如何给动态 web 工程添加额外 jar 包
+
+### 1. 可以打开项目结构菜单操作界面，添加一个自己的类库：
+
+![web工程添加依赖](/assets/tomcat/web工程添加依赖.png)
+
+### 2. 添加你你类库需要的 jar 包文件。
+
+![web工程jar包](/assets/tomcat/web工程jar包.png)
+
+### 3. 选择你添加的类库，给哪个模块使用：
+
+![选择模块](/assets/tomcat/选择模块.png)
+
+### 4. 选择 Artifacts 选项，将类库，添加到打包部署中：
+
+![选择artifacts](/assets/tomcat/选择artifacts.png)
+
+## 4. 如何在 IDEA 中部署工程到 Tomcat 上运行
+
+### 1. 建议修改 web 工程对应的 Tomcat 运行实例名称：
+
+![配置tomcat1](/assets/tomcat/配置tomcat1.png)
+
+### 2. 确认你的 Tomcat 实例中有你要部署运行的 web 工程模块：
+
+![配置tomcat2](/assets/tomcat/配置tomcat2.png)
+
+### 3. 你还可以修改你的 Tomcat 实例启动后默认的访问地址：
+
+![配置tomcat3](/assets/tomcat/配置tomcat3.png)
+
+### 4. 在 IDEA 中如何运行，和停止 Tomcat 实例。
+
+#### (1) 正常启动 Tomcat 实例：
+
+![正常启动tomcat实例](/assets/tomcat/正常启动tomcat实例.png)
+
+#### (2) Debug 方式启动 Tomcat 运行实例：
+
+![Debug启动tomcat实例](/assets/tomcat/Debug启动tomcat实例.png)
+
+#### (3) 停止 Tomcat 运行实例：
+
+![停止tomcat实例](/assets/tomcat/停止tomcat实例.png)
+
+#### (4) 重启 Tomcat 运行实例：
+
+![重启tomcat实例](/assets/tomcat/重启tomcat实例.png)
+
+## 5. 修改工程访问路径
+
+![修改tomcat工程路径](/assets/tomcat/修改tomcat工程路径.png)
+
+## 6. 修改运行的端口号
+
+![修改运行的端口号](/assets/tomcat/修改运行的端口号.png)
+
+
+## 7. 修改运行使用的浏览器
+
+![修改tomcat运行游览器](/assets/tomcat/修改tomcat运行游览器.png)
+
+## 8. 配置资源热部署
+
+![配置tomcat资源热部署](/assets/tomcat/配置tomcat资源热部署.png)
+
+
+
