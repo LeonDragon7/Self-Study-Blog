@@ -152,7 +152,7 @@ _jspxFactory.releasePageContext(_jspx_page_context);
 
 - jsp 的 page 指令可以修改 jsp 页面中一些重要的属性，或者行为。
 
-```jsp
+```java
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 ```
 
@@ -169,7 +169,7 @@ _jspxFactory.releasePageContext(_jspx_page_context);
 > 7.errorPage 属性 设置当 jsp 页面运行时出错，自动跳转去的错误页面路径。                              
 
 
-```jsp
+```java
 <!--
 errorPage 表示错误后自动跳转去的路径 <br/>
 这个路径一般都是以斜杠打头，它表示请求地址为 http://ip:port/工程路径/
@@ -252,7 +252,7 @@ private String abc = "abc";
 
 - 示例代码：
 
-```jsp
+```java
 <%=12 %> <br>
 <%=12.12 %> <br>
 <%="我是字符串" %> <br>
