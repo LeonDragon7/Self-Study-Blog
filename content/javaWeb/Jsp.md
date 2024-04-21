@@ -264,3 +264,393 @@ private String abc = "abc";
 
 ![表达式脚本代码翻译对照](/assets/jsp/表达式脚本代码翻译对照.png)
 
+## 3. 代码脚本
+
+- 代码脚本的格式是：
+
+```java
+<%
+java 语句
+%>
+```
+
+> 代码脚本的作用是：可以在 jsp 页面中，编写我们自己需要的功能（写的是 java 语句）。                                   
+
+- 代码脚本的特点是：
+> 1. 代码脚本翻译之后都在_jspService 方法中                                              
+> 2. 代码脚本由于翻译到_jspService()方法中，所以在_jspService()方法中的现有对象都可以直接使用。                                    
+> 3. 还可以由多个代码脚本块组合完成一个完整的 java 语句。                                                            
+> 4. 代码脚本还可以和表达式脚本一起组合使用，在 jsp 页面上输出数据                                            
+
+*练习：*
+
+> 1. 代码脚本----if 语句                                            
+> 2. 代码脚本----for 循环语句                           
+> 3. 翻译后 java 文件中_jspService 方法内的代码都可以写                                           
+
+- 示例代码：
+
+```java
+<%--练习：--%>
+<%--1.代码脚本----if 语句--%>
+<%
+int i = 13 ;
+if (i == 12) {
+%>
+<h1>国哥好帅</h1>
+<%
+} else {
+%>
+<h1>国哥又骗人了！</h1>
+<%
+}
+%>
+<br>
+<%--2.代码脚本----for 循环语句--%>
+<table border="1" cellspacing="0">
+<%
+for (int j = 0; j < 10; j++) {
+%>
+<tr>
+<td>第 <%=j + 1%>行</td>
+</tr>
+<%
+}
+%>
+</table>
+<%--3.翻译后 java 文件中_jspService 方法内的代码都可以写--%>
+<%
+String username = request.getParameter("username");
+System.out.println("用户名的请求参数值是：" + username);
+%>
+```
+
+- 翻译之后的对比：
+
+![代码脚本代码翻译对照](/assets/jsp/代码脚本代码翻译对照.png)
+
+# 四、jsp 中的三种注释
+
+## 1. html 注释
+
+> <!-- 这是 html 注释 -->                           
+
+**html 注释会被翻译到 java 源代码中。在_jspService 方法里，以 out.writer 输出到客户端。**
+
+## 2. java 注释 
+
+```java
+<%
+// 单行 java 注释
+/* 多行 java 注释 */
+%>
+```
+
+**java 注释会被翻译到 java 源代码中。**
+
+## 3. jsp 注释
+
+> <%-- 这是 jsp 注释 --%>                              
+
+**jsp 注释可以注掉，jsp 页面中所有代码。**
+
+# 五、jsp 九大内置对象
+
+> jsp 中的内置对象，是指 Tomcat 在翻译 jsp 页面成为 Servlet 源代码后，内部提供的九大对象，叫内置对象。                              
+
+![jsp九大内置对象](/assets/jsp/jsp九大内置对象.png)
+
+# 六、jsp 四大域对象
+
+- 四个域对象分别是：
+> pageContext (PageContextImpl 类) 当前 jsp 页面范围内有效                                               
+> request (HttpServletRequest 类)、 一次请求内有效                                    
+> session (HttpSession 类)、 一个会话范围内有效（打开浏览器访问服务器，直到关闭浏览器）                                                          
+> application (ServletContext 类) 整个 web 工程范围内都有效（只要 web 工程不停止，数据都在）                                                  
+
+> 域对象是可以像 Map 一样存取数据的对象。四个域对象功能一样。不同的是它们对数据的存取范围。                  
+> 虽然四个域对象都可以存取数据。在使用上它们是有优先顺序的。                                            
+> 四个域在使用的时候，优先顺序分别是，他们从小到大的范围的顺序。                                   
+> pageContext ====>>> request ====>>> session ====>>> application                                        
+
+- scope.jsp 页面
+
+```java
+<body>
+<h1>scope.jsp 页面</h1>
+<%
+// 往四个域中都分别保存了数据
+pageContext.setAttribute("key", "pageContext");
+request.setAttribute("key", "request");
+session.setAttribute("key", "session");
+application.setAttribute("key", "application");
+%>
+pageContext 域是否有值：<%=pageContext.getAttribute("key")%> <br>
+request 域是否有值：<%=request.getAttribute("key")%> <br>
+session 域是否有值：<%=session.getAttribute("key")%> <br>
+application 域是否有值：<%=application.getAttribute("key")%> <br>
+<%
+request.getRequestDispatcher("/scope2.jsp").forward(request,response);
+%>
+</body>
+```
+
+- scope2.jsp 页面
+
+```java
+<body>
+<h1>scope2.jsp 页面</h1>
+pageContext 域是否有值：<%=pageContext.getAttribute("key")%> <br>
+request 域是否有值：<%=request.getAttribute("key")%> <br>
+session 域是否有值：<%=session.getAttribute("key")%> <br>
+application 域是否有值：<%=application.getAttribute("key")%> <br>
+</body>
+```
+
+# 七、jsp 中的 out 输出和 response.getWriter 输出的区别
+
+> response 中表示响应，我们经常用于设置返回给客户端的内容（输出）                                            
+> out 也是给用户做输出使用的。               
+
+![out输出和response.getWriter输出的区别](/assets/jsp/out输出和response.getWriter输出的区别.png)
+
+**由于 jsp 翻译之后，底层源代码都是使用 out 来进行输出，所以一般情况下。我们在 jsp 页面中统一使用 out 来进行输出。避免打乱页面输出内容的顺序。**
+
+> out.write() 输出字符串没有问题                                         
+> out.print() 输出任意数据都没有问题（都转换成为字符串后调用的 write 输出）                                       
+
+**深入源码，浅出结论：在 jsp 页面中，可以统一使用 out.print()来进行输出**
+
+# 八、jsp 的常用标签
+
+## 1. jsp 静态包含
+
+- 示例说明：
+
+```java
+<%--
+<%@ include file=""%> 就是静态包含
+file 属性指定你要包含的 jsp 页面的路径
+地址中第一个斜杠 / 表示为 http://ip:port/工程路径/ 映射到代码的 web 目录
+静态包含的特点：
+1、静态包含不会翻译被包含的 jsp 页面。
+2、静态包含其实是把被包含的 jsp 页面的代码拷贝到包含的位置执行输出。
+--%>
+<%@ include file="/include/footer.jsp"%>
+```
+
+## 2. jsp 动态包含
+
+- 示例说明：
+
+```java
+<%--
+<jsp:include page=""></jsp:include> 这是动态包含
+page 属性是指定你要包含的 jsp 页面的路径
+动态包含也可以像静态包含一样。把被包含的内容执行输出到包含位置
+动态包含的特点：
+1、动态包含会把包含的 jsp 页面也翻译成为 java 代码
+2、动态包含底层代码使用如下代码去调用被包含的 jsp 页面执行输出。
+JspRuntimeLibrary.include(request, response, "/include/footer.jsp", out, false);
+3、动态包含，还可以传递参数
+--%>
+<jsp:include page="/include/footer.jsp">
+<jsp:param name="username" value="bbj"/>
+<jsp:param name="password" value="root"/>
+</jsp:include>
+```
+
+- 动态包含的底层原理：
+
+![动态包含的底层原理](/assets/jsp/动态包含的底层原理.png)
+
+## 3. jsp 标签-转发
+
+- 示例说明：
+
+```java
+<%--
+<jsp:forward page=""></jsp:forward> 是请求转发标签，它的功能就是请求转发
+page 属性设置请求转发的路径
+--%>
+<jsp:forward page="/scope2.jsp"></jsp:forward>
+```
+
+# 九、jsp 的练习题
+
+## 1. 练习一：在 jsp 页面中输出九九乘法口诀表
+
+```java
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+<title>Title</title>
+<style type="text/css">
+table{
+width: 650px;
+}
+</style>
+</head>
+<body>
+<%-- 练习一：在 jsp 页面中输出九九乘法口诀表 --%>
+<h1 align="center">九九乘法口诀表</h1>
+<table align="center">
+<%-- 外层循环遍历行 --%>
+<% for (int i = 1; i <= 9; i++) { %>
+<tr>
+<%-- 内层循环遍历单元格 --%>
+<% for (int j = 1; j <= i ; j++) { %>
+<td><%=j + "x" + i + "=" + (i*j)%></td>
+<% } %>
+</tr>
+<% } %>
+</table>
+</body>
+</html>
+```
+
+## 2. 练习二：jsp 输出一个表格，里面有 10 个学生信息。
+
+![练习2](/assets/jsp/练习2.png)
+
+- Student 类：
+
+```java
+public class Student {
+private Integer id;
+private String name;
+private Integer age;
+private String phone;
+}
+```
+
+- SearchStudentServlet 程序：
+
+```java
+public class SearchStudentServlet extends HttpServlet {
+@Override
+protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
+IOException {
+// 获取请求的参数
+// 发 sql 语句查询学生的信息
+// 使用 for 循环生成查询到的数据做模拟
+List<Student> studentList = new ArrayList<Student>();
+for (int i = 0; i < 10; i++) {
+int t = i + 1;
+studentList.add(new Student(t,"name"+t, 18+t,"phone"+t));
+}
+// 保存查询到的结果（学生信息）到 request 域中
+req.setAttribute("stuList", studentList);
+// 请求转发到 showStudent.jsp 页面
+req.getRequestDispatcher("/test/showStudent.jsp").forward(req,resp);
+}
+}
+```
+
+- showStudent.jsp 页面
+
+```java
+<%@ page import="java.util.List" %>
+<%@ page import="com.atguigu.pojo.Student" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+<title>Title</title>
+<style>
+table{
+border: 1px blue solid;
+width: 600px;
+border-collapse: collapse;
+}
+td,th{
+border: 1px blue solid;
+}
+</style>
+</head>
+<body>
+<%--练习二：jsp 输出一个表格，里面有 10 个学生信息。--%>
+<%
+List<Student> studentList = (List<Student>) request.getAttribute("stuList");
+%>
+<table>
+<tr>
+<td>编号</td>
+<td>姓名</td>
+<td>年龄</td>
+<td>电话</td>
+<td>操作</td>
+</tr>
+<% for (Student student : studentList) { %>
+<tr>
+<td><%=student.getId()%></td>
+<td><%=student.getName()%></td>
+<td><%=student.getAge()%></td>
+<td><%=student.getPhone()%></td>
+<td>删除、修改</td>
+</tr>
+<% } %>
+</table>
+</body>
+</html>
+```
+
+# 十、什么是 Listener 监听器？
+
+> 1. Listener 监听器它是 JavaWeb 的三大组件之一。JavaWeb 的三大组件分别是：Servlet 程序、Filter 过滤器、Listener 监听器。                                   
+> 2. Listener 它是 JavaEE 的规范，就是接口                                                            
+> 3. 监听器的作用是，监听某种事物的变化。然后通过回调函数，反馈给客户（程序）去做一些相应的处理。                                  
+
+## 1. ServletContextListener 监听器
+
+> ServletContextListener 它可以监听 ServletContext 对象的创建和销毁。                              
+> ServletContext 对象在 web 工程启动的时候创建，在 web 工程停止的时候销毁。                                           
+> 监听到创建和销毁之后都会分别调用 ServletContextListener 监听器的方法反馈。                                      
+
+
+- 两个方法分别是：
+
+```java
+public interface ServletContextListener extends EventListener {
+/**
+* 在 ServletContext 对象创建之后马上调用，做初始化
+*/
+public void contextInitialized(ServletContextEvent sce);
+/**
+* 在 ServletContext 对象销毁之后调用
+*/
+public void contextDestroyed(ServletContextEvent sce);
+}
+```
+
+### 如何使用 ServletContextListener 监听器监听 ServletContext 对象。
+
+- 使用步骤如下：
+
+> 1. 编写一个类去实现 ServletContextListener                                          
+> 2. 实现其两个回调方法                           
+> 3. 到 web.xml 中去配置监听器                                      
+
+- 监听器实现类：
+
+```java
+public class MyServletContextListenerImpl implements ServletContextListener {
+@Override
+public void contextInitialized(ServletContextEvent sce) {
+System.out.println("ServletContext 对象被创建了");
+}
+@Override
+public void contextDestroyed(ServletContextEvent sce) {
+System.out.println("ServletContext 对象被销毁了");
+}
+}
+```
+
+- web.xml 中的配置：
+
+```xml
+<!--配置监听器-->
+<listener>
+<listener-class>com.atguigu.listener.MyServletContextListenerImpl</listener-class>
+</listener>
+```
