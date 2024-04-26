@@ -1,6 +1,6 @@
 ---
 external: false
-title: cookie和session
+title: Cookie和Session
 date: 2023-06-15
 ---
 
