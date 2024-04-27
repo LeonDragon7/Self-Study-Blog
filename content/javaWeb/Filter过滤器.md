@@ -277,6 +277,272 @@ new Thread(new Task()).start();
 }
 ```
 
+# 七、使用 Filter 和 ThreadLocal 组合管理事务
+
+## 1. 使用 ThreadLocal 来确保所有 dao 操作都在同一个 Connection 连接对象中完成
+
+- 原理分析图：
+
+![原理分析图1](/assets/filter过滤器/原理分析图1.png)
+
+- JdbcUtils 工具类的修改：
+
+```java
+public class JdbcUtils {
+private static DruidDataSource dataSource;
+private static ThreadLocal<Connection> conns = new ThreadLocal<Connection>();
+static {
+try {
+Properties properties = new Properties();
+// 读取 jdbc.properties 属性配置文件
+InputStream inputStream =
+JdbcUtils.class.getClassLoader().getResourceAsStream("jdbc.properties");
+// 从流中加载数据
+properties.load(inputStream);
+// 创建 数据库连接 池
+dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+} catch (Exception e) {
+e.printStackTrace();
+}
+}
+/**
+* 获取数据库连接池中的连接
+* @return 如果返回 null,说明获取连接失败<br/>有值就是获取连接成功
+*/
+public static Connection getConnection(){
+Connection conn = conns.get();
+if (conn == null) {
+try {
+conn = dataSource.getConnection();//从数据库连接池中获取连接
+conns.set(conn); // 保存到 ThreadLocal 对象中，供后面的 jdbc 操作使用
+conn.setAutoCommit(false); // 设置为手动管理事务
+} catch (SQLException e) {
+e.printStackTrace();
+}
+}
+return conn;
+}
+/**
+* 提交事务，并关闭释放连接
+*/
+public static void commitAndClose(){
+Connection connection = conns.get();
+if (connection != null) { // 如果不等于 null，说明 之前使用过连接，操作过数据库
+try {
+connection.commit(); // 提交 事务
+} catch (SQLException e) {
+e.printStackTrace();
+} finally {
+try {
+connection.close(); // 关闭连接，资源资源
+} catch (SQLException e) {
+e.printStackTrace();
+}
+}
+}
+// 一定要执行 remove 操作，否则就会出错。（因为 Tomcat 服务器底层使用了线程池技术）
+conns.remove();
+}
+/**
+* 回滚事务，并关闭释放连接
+*/
+public static void rollbackAndClose(){
+Connection connection = conns.get();
+if (connection != null) { // 如果不等于 null，说明 之前使用过连接，操作过数据库
+try {
+connection.rollback();//回滚事务
+} catch (SQLException e) {
+e.printStackTrace();
+} finally {
+try {
+connection.close(); // 关闭连接，资源资源
+} catch (SQLException e) {
+e.printStackTrace();
+}
+}
+}
+// 一定要执行 remove 操作，否则就会出错。（因为 Tomcat 服务器底层使用了线程池技术）
+conns.remove();
+}
+/**
+* 关闭连接，放回数据库连接池
+* @param conn
+public static void close(Connection conn){
+if (conn != null) {
+try {
+conn.close();
+} catch (SQLException e) {
+e.printStackTrace();
+}
+}
+} */
+}
+```
+
+- 修改 BaseDao
+
+```java
+public abstract class BaseDao {
+//使用 DbUtils 操作数据库
+private QueryRunner queryRunner = new QueryRunner();
+/**
+* update() 方法用来执行：Insert\Update\Delete 语句
+*
+* @return 如果返回-1,说明执行失败<br/>返回其他表示影响的行数
+*/
+public int update(String sql, Object... args) {
+System.out.println(" BaseDao 程序在[" +Thread.currentThread().getName() + "]中");
+Connection connection = JdbcUtils.getConnection();
+try {
+return queryRunner.update(connection, sql, args);
+} catch (SQLException e) {
+e.printStackTrace();
+throw new RuntimeException(e);
+}
+}
+/**
+* 查询返回一个 javaBean 的 sql 语句
+*
+* @param type 返回的对象类型
+* @param sql 执行的 sql 语句
+* @param args sql 对应的参数值
+* @param <T> 返回的类型的泛型
+* @return
+*/
+public <T> T queryForOne(Class<T> type, String sql, Object... args) {
+Connection con = JdbcUtils.getConnection();
+try {
+return queryRunner.query(con, sql, new BeanHandler<T>(type), args);
+} catch (SQLException e) {
+e.printStackTrace();
+throw new RuntimeException(e);
+}
+}
+/**
+* 查询返回多个 javaBean 的 sql 语句
+*
+* @param type 返回的对象类型
+* @param sql 执行的 sql 语句
+* @param args sql 对应的参数值
+* @param <T> 返回的类型的泛型
+* @return
+*/
+public <T> List<T> queryForList(Class<T> type, String sql, Object... args) {
+Connection con = JdbcUtils.getConnection();
+try {
+return queryRunner.query(con, sql, new BeanListHandler<T>(type), args);
+} catch (SQLException e) {
+e.printStackTrace();
+throw new RuntimeException(e);
+}
+}
+/**
+* 执行返回一行一列的 sql 语句
+* @param sql 执行的 sql 语句
+* @param args sql 对应的参数值
+* @return
+*/
+public Object queryForSingleValue(String sql, Object... args){
+Connection conn = JdbcUtils.getConnection();
+try {
+return queryRunner.query(conn, sql, new ScalarHandler(), args);
+} catch (SQLException e) {
+e.printStackTrace();
+throw new RuntimeException(e);
+}
+}
+}
+```
+
+## 2. 使用 Filter 过滤器统一给所有的 Service 方法都加上 try-catch。来进行实现的管理。
+
+
+- 原理分析图：
+
+![原理分析图2](/assets/filter过滤器/原理分析图2.png)
+
+- Filter 类代码：
+
+```java
+public class TransactionFilter implements Filter {
+@Override
+public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain
+filterChain) throws IOException, ServletException {
+try {
+filterChain.doFilter(servletRequest,servletResponse);
+JdbcUtils.commitAndClose();// 提交事务
+} catch (Exception e) {
+JdbcUtils.rollbackAndClose();//回滚事务
+e.printStackTrace();
+}
+}
+}
+```
+
+- 在 web.xml 中的配置：
+
+```xml
+<filter>
+<filter-name>TransactionFilter</filter-name>
+<filter-class>com.atguigu.filter.TransactionFilter</filter-class>
+</filter>
+<filter-mapping>
+<filter-name>TransactionFilter</filter-name>
+<!-- /* 表示当前工程下所有请求 -->
+<url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+**一定要记得把 BaseServlet 中的异常往外抛给 Filter 过滤器**
+
+```java
+public abstract class BaseServlet extends HttpServlet {
+@Override
+protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
+IOException {
+doPost(req, resp);
+}
+protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
+IOException {
+// 解决 post 请求中文乱码问题
+// 一定要在获取请求参数之前调用才有效
+req.setCharacterEncoding("UTF-8");
+String action = req.getParameter("action");
+try {
+// 获取 action 业务鉴别字符串，获取相应的业务 方法反射对象
+Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class,
+HttpServletResponse.class);
+// System.out.println(method);
+// 调用目标业务 方法
+method.invoke(this, req, resp);
+} catch (Exception e) {
+e.printStackTrace();
+throw new RuntimeException(e);// 把异常抛给 Filter 过滤器
+}
+}
+}
+```
+
+## 3. 将所有异常都统一交给 Tomcat，让 Tomcat 展示友好的错误信息页面
+
+- 在 web.xml 中我们可以通过错误页面配置来进行管理
+
+```xml
+<!--error-page 标签配置，服务器出错之后，自动跳转的页面-->
+<error-page>
+<!--error-code 是错误类型-->
+<error-code>500</error-code>
+<!--location 标签表示。要跳转去的页面路径-->
+<location>/pages/error/error500.jsp</location>
+</error-page>
+<!--error-page 标签配置，服务器出错之后，自动跳转的页面-->
+<error-page>
+<!--error-code 是错误类型-->
+<error-code>404</error-code>
+<!--location 标签表示。要跳转去的页面路径-->
+<location>/pages/error/error404.jsp</location>
+</error-page>
+```
 
 
 
