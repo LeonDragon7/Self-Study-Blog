@@ -468,3 +468,104 @@ public void test3() {
 > (1) 在 spring 配置文件 bean 标签里面有属性（scope）用于设置单实例还是多实例
 
 ### (2) scope 属性值
+
+> 第一个值 默认值，singleton，表示是单实例对象                                     
+> 第二个值 prototype，表示是多实例对象                                            
+
+![prototype多例对象](/assets/IOC/prototype多例对象.png)
+
+### (3) singleton 和 prototype 区别
+
+> 第一 singleton 单实例，prototype 多实例                           
+> 第二 设置 scope 值是 singleton 时候，加载 spring 配置文件时候就会创建单实例对象                                  
+> 设置 scope 值是 prototype 时候，不是在加载 spring 配置文件时候创建 对象，在调用getBean 方法时候创建多实例对象                                  
+
+# 九、IOC 操作 Bean 管理（bean 生命周期）
+
+## 1. 生命周期
+
+> 从对象创建到对象销毁的过程                            
+
+## 2. bean 生命周期    
+
+> 1. 通过构造器创建 bean 实例（无参数构造）                           
+> 2. 为 bean 的属性设置值和对其他 bean 引用（调用 set 方法）                  
+> 3. 调用 bean 的初始化的方法（需要进行配置初始化的方法）                    
+> 4. bean 可以使用了（对象获取到了）                     
+> 5. 当容器关闭时候，调用 bean 的销毁的方法（需要进行配置销毁的方法）                       
+
+## 3. 演示 bean 生命周期
+
+```java
+public class Orders {
+    //无参数构造
+    public Orders() {
+        System.out.println("第一步 执行无参数构造创建 bean 实例");
+    }
+    private String oname;
+    public void setOname(String oname) {
+    this.oname = oname;
+        System.out.println("第二步 调用 set 方法设置属性值");
+    }
+    //创建执行的初始化的方法
+    public void initMethod() {
+        System.out.println("第三步 执行初始化的方法");
+    }
+    //创建执行的销毁的方法
+    public void destroyMethod() {
+        System.out.println("第五步 执行销毁的方法");
+    }
+    }
+    <bean id="orders" class="com.atguigu.spring5.bean.Orders" init-method="initMethod" destroy-method="destroyMethod">
+    <property name="oname" value="手机"></property>
+    </bean>
+    @Test
+    public void testBean3() {
+    // ApplicationContext context =
+    // new ClassPathXmlApplicationContext("bean4.xml");
+    ClassPathXmlApplicationContext context =
+    new ClassPathXmlApplicationContext("bean4.xml");
+    Orders orders = context.getBean("orders", Orders.class);
+    System.out.println("第四步 获取创建 bean 实例对象");
+    System.out.println(orders);
+    //手动让 bean 实例销毁
+    context.close();
+ }
+```
+
+![bean生命周期](/assets/IOC/bean生命周期.png)
+
+
+## 4. bean 的后置处理器，bean 生命周期有七步
+
+> 1. 通过构造器创建 bean 实例（无参数构造）                  
+> 2. 为 bean 的属性设置值和对其他 bean 引用（调用 set 方法）                          
+> 3. 把 bean 实例传递 bean 后置处理器的方法 postProcessBeforeInitialization                           
+> 4. 调用 bean 的初始化的方法（需要进行配置初始化的方法）                      
+> 5. 把 bean 实例传递 bean 后置处理器的方法 postProcessAfterInitialization                            
+> 6. bean 可以使用了（对象获取到了）                       
+> 7. 当容器关闭时候，调用 bean 的销毁的方法（需要进行配置销毁的方法）                       
+
+## 5. 演示添加后置处理器效果
+
+### (1) 创建类，实现接口 BeanPostProcessor，创建后置处理器
+
+```java
+public class MyBeanPost implements BeanPostProcessor {
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) 
+throws BeansException {
+    System.out.println("在初始化之前执行的方法");
+    return bean;
+ }
+ @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) 
+throws BeansException {
+    System.out.println("在初始化之后执行的方法");
+    return bean;
+ }
+}
+```
+
+![配置后置处理器](/assets/IOC/配置后置处理器.png)
+
