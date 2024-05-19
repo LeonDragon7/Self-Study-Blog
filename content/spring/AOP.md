@@ -361,6 +361,124 @@ public class ConfigAop {
 
 > Spring 框架对 JDBC 进行封装，使用 JdbcTemplate 方便实现对数据库操作               
 
+## 2. 准备工作
+
+### (1) 引入相关 jar 包
+
+![数据库jar包](/assets/AOP/数据库jar包.png)
+
+### (2) 在 spring 配置文件配置数据库连接池
+
+```xml
+<!-- 数据库连接池 -->
+<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+ destroy-method="close">
+ <property name="url" value="jdbc:mysql:///user_db" />
+ <property name="username" value="root" />
+ <property name="password" value="root" />
+ <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+</bean>
+```
+
+### (3) 配置 JdbcTemplate 对象，注入 DataSource
+
+```xml
+<!-- JdbcTemplate 对象 -->
+<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+ <!--注入 dataSource-->
+ <property name="dataSource" ref="dataSource"></property>
+</bean>
+```
+
+### (4) 创建 service 类，创建 dao 类，在 dao 注入 jdbcTemplate 对象
+
+**配置文件**
+
+```xml
+<!-- 组件扫描 -->
+<context:component-scan base-package="com.atguigu"></context:component-scan>
+```
+
+**Service**
+```java
+@Service
+public class BookService {
+    //注入 dao
+    @Autowired
+    private BookDao bookDao;
+}
+```
+
+**Dao**
+
+```java
+@Repository
+public class BookDaoImpl implements BookDao {
+    //注入 JdbcTemplate
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+}
+```
+
+# 九、JdbcTemplate 操作数据库（添加）
+
+## 1. 对应数据库创建实体类
+
+![对应数据库创建实体类](/assets/AOP/对应数据库创建实体类.png)
+
+## 2. 编写 service 和 dao
+
+### (1) 在 dao 进行数据库添加操作
+
+### (2) 调用 JdbcTemplate 对象里面 update 方法实现添加操作
+
+![update方法](/assets/AOP/update方法.png)
+
+> 有两个参数                   
+> 第一个参数：sql 语句                  
+> 第二个参数：可变参数，设置 sql 语句值               
+
+```java
+@Repository
+public class BookDaoImpl implements BookDao {
+    //注入 JdbcTemplate
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    //添加的方法
+    @Override
+    public void add(Book book) {
+        //1 创建 sql 语句
+        String sql = "insert into t_book values(?,?,?)";
+        //2 调用方法实现
+        Object[] args = {book.getUserId(), book.getUsername(),
+        book.getUstatus()};
+            int update = jdbcTemplate.update(sql,args);
+            System.out.println(update);
+        }
+}
+```
+
+## 3. 测试类
+
+```java
+@Test
+public void testJdbcTemplate() {
+    ApplicationContext context =
+    new ClassPathXmlApplicationContext("bean1.xml");
+    BookService bookService = context.getBean("bookService",BookService.class);
+    Book book = new Book();
+    book.setUserId("1");
+    book.setUsername("java");
+    book.setUstatus("a");
+    bookService.addBook(book);
+}
+```
+![测试字段](/assets/AOP/测试字段.png)
+
+
+
+
+
 
 
 
