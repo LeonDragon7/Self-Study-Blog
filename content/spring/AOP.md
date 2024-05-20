@@ -475,6 +475,78 @@ public void testJdbcTemplate() {
 ```
 ![测试字段](/assets/AOP/测试字段.png)
 
+# 十、JdbcTemplate 操作数据库（修改和删除）
+
+## 1. 修改
+
+```java
+@Override
+public void updateBook(Book book) {
+    String sql = "update t_book set username=?,ustatus=? where user_id=?";
+    Object[] args = {book.getUsername(), book.getUstatus(),book.getUserId()};
+    int update = jdbcTemplate.update(sql, args);
+    System.out.println(update);
+}
+```
+
+## 2. 删除
+
+```java
+@Override
+public void delete(String id) {
+    String sql = "delete from t_book where user_id=?";
+    int update = jdbcTemplate.update(sql, id);
+    System.out.println(update);
+}
+```
+
+# 十一、JdbcTemplate 操作数据库（查询返回某个值）
+
+## 1. 查询表里面有多少条记录，返回是某个值          
+
+## 2. 使用 JdbcTemplate 实现查询返回某个值代码
+
+![queryForObject1](/assets/AOP/queryForObject1.png)
+
+> 有两个参数                
+> 第一个参数：sql 语句                     
+> 第二个参数：返回类型 Class                   
+
+```java
+//查询表记录数
+@Override
+public int selectCount() {
+    String sql = "select count(*) from t_book";
+    Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+    return count;
+}
+```
+
+# 十二、JdbcTemplate 操作数据库（查询返回对象）
+
+## 1. 场景：查询图书详情
+
+## 2. JdbcTemplate 实现查询返回对象
+
+> 有三个参数              
+> 第一个参数：sql 语句                      
+> 第二个参数：RowMapper 是接口，针对返回不同类型数据，使用这个接口里面实现类完成数据封装                           
+> 第三个参数：sql 语句值                    
+
+```java
+//查询返回对象
+@Override
+public Book findBookInfo(String id) {
+    String sql = "select * from t_book where user_id=?";
+    //调用方法
+    Book book = jdbcTemplate.queryForObject(sql, new
+    BeanPropertyRowMapper<Book>(Book.class), id);
+    return book;
+}
+```
+
+
+
 
 
 
