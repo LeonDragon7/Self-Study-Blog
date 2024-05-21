@@ -545,6 +545,106 @@ public Book findBookInfo(String id) {
 }
 ```
 
+# 十三、JdbcTemplate操作数据库（查询返回集合）
+
+## 1. 场景：查询图书列表分页…    
+
+## 2. 调用JdbcTemplate方法实现查询返回集合 
+
+![query](/assets/AOP/query.png)
+
+> 有三个参数                
+> 第一个参数：sql语句                   
+> 第二个参数：RowMapper是接口，针对返回不同类型数据，使用这个接口里面实现类完成数据封装                      
+> 第三个参数：sql语句值                            
+
+```java
+//查询返回集合 
+@Override 
+public List<Book> findAllBook() { 
+    String sql = "select * from t_book"; 
+    //调用方法 
+    List<Book> bookList = jdbcTemplate.query(sql, new 
+BeanPropertyRowMapper<Book>(Book.class)); 
+    return bookList; 
+} 
+```
+
+# 十四、JdbcTemplate操作数据库（批量操作）
+
+## 1. 批量操作：操作表里面多条记录                   
+
+## 2. JdbcTemplate实现批量添加操作
+
+![batchUpdate](/assets/AOP/batchUpdate.png)
+
+> 有两个参数                    
+> 第一个参数：sql语句                            
+> 第二个参数：List集合，添加多条记录数据                     
+
+```java
+//批量添加 
+@Override 
+public void batchAddBook(List<Object[]> batchArgs) { 
+    String sql = "insert into t_book values(?,?,?)"; 
+    int[] ints = jdbcTemplate.batchUpdate(sql, batchArgs); 
+    System.out.println(Arrays.toString(ints)); 
+} 
+    //批量添加测试 
+    List<Object[]> batchArgs = new ArrayList<>(); 
+    Object[] o1 = {"3","java","a"}; 
+    Object[] o2 = {"4","c++","b"}; 
+    Object[] o3 = {"5","MySQL","c"}; 
+    batchArgs.add(o1); 
+    batchArgs.add(o2); 
+    batchArgs.add(o3); 
+    //调用批量添加 
+    bookService.batchAdd(batchArgs); 
+```
+
+## 3. JdbcTemplate实现批量修改操作 
+
+```java
+//批量修改 
+@Override 
+public void batchUpdateBook(List<Object[]> batchArgs) { 
+    String sql = "update t_book set username=?,ustatus=? where user_id=?"; 
+    int[] ints = jdbcTemplate.batchUpdate(sql, batchArgs); 
+    System.out.println(Arrays.toString(ints)); 
+} 
+//批量修改 
+List<Object[]> batchArgs = new ArrayList<>(); 
+Object[] o1 = {"java0909","a3","3"}; 
+Object[] o2 = {"c++1010","b4","4"}; 
+Object[] o3 = {"MySQL1111","c5","5"}; 
+batchArgs.add(o1); 
+batchArgs.add(o2); 
+batchArgs.add(o3); 
+//调用方法实现批量修改 
+bookService.batchUpdate(batchArgs);
+```
+
+## 4. JdbcTemplate实现批量删除操作
+
+```java
+//批量删除 
+@Override 
+public void batchDeleteBook(List<Object[]> batchArgs) { 
+    String sql = "delete from t_book where user_id=?"; 
+    int[] ints = jdbcTemplate.batchUpdate(sql, batchArgs); 
+    System.out.println(Arrays.toString(ints)); 
+} 
+//批量删除 
+List<Object[]> batchArgs = new ArrayList<>(); 
+
+Object[] o1 = {"3"}; 
+Object[] o2 = {"4"}; 
+batchArgs.add(o1); 
+batchArgs.add(o2); 
+//调用方法实现批量删除 
+bookService.batchDelete(batchArgs); 
+```
+
 
 
 
